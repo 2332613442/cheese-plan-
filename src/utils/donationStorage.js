@@ -25,7 +25,7 @@ function saveDonations(donations) {
 }
 
 // 添加捐赠记录
-export function addDonation(foods) {
+export function addDonation(foods, shareInfo = null) {
   const donations = getDonations()
   const newDonation = {
     id: crypto.randomUUID(),
@@ -35,6 +35,9 @@ export function addDonation(foods) {
       expirationDate: f.expirationDate,
     })),
     foodCount: foods.length,
+    // 关联到附近分享
+    shareTitle: shareInfo?.title || null,
+    shareId: shareInfo?.shareId || null,
     createdAt: new Date().toISOString(),
   }
   donations.unshift(newDonation)

@@ -7,8 +7,10 @@ export default function FoodCard({ food, onEdit, onDelete, onConsume, batchMode 
   const category = getCategoryById(food.category)
   const daysRemaining = getDaysRemaining(food.expirationDate)
 
-  const daysText = daysRemaining <= 0
-    ? `已过期 ${Math.abs(daysRemaining) || 1} 天`
+  const daysText = daysRemaining < 0
+    ? `已过期 ${Math.abs(daysRemaining)} 天`
+    : daysRemaining === 0
+    ? '今天到期'
     : `剩余 ${daysRemaining} 天`
 
   // 数量显示

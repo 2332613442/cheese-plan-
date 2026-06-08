@@ -1,11 +1,13 @@
 // 保质期时长分类配置
 
+export const EXPIRED_RANGE = [-9999, 0]
+
 export const TIME_RANGES = [
   {
     id: 'urgent',
     label: '急需处理',
     cheeseType: null,
-    range: [-Infinity, 0],
+    range: EXPIRED_RANGE,
     color: 'bg-red-100 border-red-300',
   },
   {

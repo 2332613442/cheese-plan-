@@ -51,6 +51,24 @@ export default function SettingsModal({ onClose, onSave }) {
         </div>
 
         <div className="space-y-6">
+          {/* 通知开关 */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-700">临期提醒通知</p>
+              <p className="text-xs text-gray-500 mt-0.5">开启后在食品到期前发送通知</p>
+            </div>
+            <button
+              onClick={() => setSettings({ ...settings, notificationEnabled: !settings.notificationEnabled })}
+              className={`w-12 h-6 rounded-full transition-colors relative ${
+                settings.notificationEnabled !== false ? 'bg-cheese' : 'bg-gray-300'
+              }`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                settings.notificationEnabled !== false ? 'translate-x-6' : 'translate-x-0.5'
+              }`} />
+            </button>
+          </div>
+
           {/* 临期阈值设置 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

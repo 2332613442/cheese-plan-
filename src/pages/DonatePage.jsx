@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getDonations, addDonation, getDonationStats } from '../utils/donationStorage'
-import { deleteFood } from '../utils/storage'
+import { createShare } from '../utils/api'
 import DonationModal from '../components/DonationModal'
 import DonationHistory from '../components/DonationHistory'
 
@@ -116,7 +116,7 @@ function getPositionOnPath(points, progress, pathData) {
   return { x, y, angle, flipX }
 }
 
-export default function DonatePage({ foods, onReload }) {
+export default function DonatePage({ foods, onReload, user, onLogin, onNavigate }) {
   // 捐赠相关状态
   const [donations, setDonations] = useState([])
   const [showDonationModal, setShowDonationModal] = useState(false)
@@ -134,7 +134,7 @@ export default function DonatePage({ foods, onReload }) {
   }
 
   // 实际帮助人数
-  const targetHelpedCount = Math.max(stats.helpedCount, 1)
+  const targetHelpedCount = stats.helpedCount || 0
   const savedAmount = stats.savedAmount || 0
 
   // 动画相关状态
@@ -142,6 +142,8 @@ export default function DonatePage({ foods, onReload }) {
   const [mouseFrame, setMouseFrame] = useState(0)
   const [isAnimating, setIsAnimating] = useState(true) // 是否正在播放动画
   const [toast, setToast] = useState('') // Toast提示
+  const [lastDonation, setLastDonation] = useState(null) // 最近一次捐赠（用于显示成功）
+  const [isSubmitting, setIsSubmitting] = useState(false) // 提交状态
 
   // 预计算路径长度数据
   const pathData = useMemo(() => calculatePathLengths(pathPoints), [])
@@ -149,7 +151,7 @@ export default function DonatePage({ foods, onReload }) {
   // 页面加载时播放动画，从0跑到目标值
   useEffect(() => {
     if (!isAnimating) return
-    if (animationProgress >= targetHelpedCount) {
+    if (targetHelpedCount === 0) {
       setIsAnimating(false)
       return
     }
@@ -166,7 +168,7 @@ export default function DonatePage({ foods, onReload }) {
     }, 50)  // 50ms间隔，配合0.5%步长，总时长约4.5秒跑完45%
 
     return () => clearInterval(interval)
-  }, [isAnimating, animationProgress, targetHelpedCount])
+  }, [isAnimating, targetHelpedCount])
 
   // 老鼠奔跑动画帧切换（只在动画进行中播放）
   useEffect(() => {
@@ -178,37 +180,95 @@ export default function DonatePage({ foods, onReload }) {
   }, [isAnimating])
 
   // 计算老鼠在迷宫中的位置和朝向
-  const maxCount = 100
-  const progress = Math.min(animationProgress / maxCount, 1)
+  const maxCount = Math.max(targetHelpedCount, 1)
+  const progress = targetHelpedCount === 0 ? 0 : Math.min(animationProgress / maxCount, 1)
   const { x: mouseX, y: mouseY, angle: rotation, flipX } = getPositionOnPath(pathPoints, progress, pathData)
 
-  // 里程碑提示
+  // 里程碑提示 - 动态计算
   const getMilestoneMessage = () => {
     const count = Math.round(animationProgress)
-    if (count >= 100) return '太棒了！已帮助100人，目标达成！'
-    if (count >= 90) return '冲刺阶段！再帮助10人即可达成目标！'
-    if (count >= 75) return '已完成75%，继续加油！'
-    if (count >= 50) return '已过半程，你的善举温暖了50个家庭！'
-    if (count >= 25) return '良好开端！已帮助25人'
-    if (count >= 10) return '爱心传递中...'
+    if (count === 0) return null
+
+    // 动态里程碑：根据目标值计算百分比
+    const target = Math.max(targetHelpedCount, 10)
+    const percent = (count / target) * 100
+
+    if (percent >= 100) return `太棒了！已帮助${count}人，目标达成！`
+    if (percent >= 90) return `冲刺阶段！还差${Math.ceil(target - count)}人达成目标！`
+    if (percent >= 75) return `已完成75%，继续加油！`
+    if (percent >= 50) return `已过半程，你的善举温暖了${count}个家庭！`
+    if (percent >= 25) return `良好开端！已帮助${count}人`
+    if (count >= 1) return '爱心传递中...'
     return null
   }
   const milestoneMessage = getMilestoneMessage()
 
   // 处理捐赠成功
-  const handleDonateSuccess = (selectedFoods) => {
-    // 添加捐赠记录
-    addDonation(selectedFoods)
-    // 删除已捐赠的食品
-    selectedFoods.forEach(food => deleteFood(food.id))
-    // 重新加载数据
-    loadDonations()
-    onReload()
-    // 重播动画
-    setAnimationProgress(0)
-    setIsAnimating(true)
-    // Toast提示
-    showToast(`成功捐赠 ${selectedFoods.length} 件食品！`)
+  const handleDonateSuccess = async (selectedFoods, title, description, location, contact, pickupTime) => {
+    setIsSubmitting(true)
+    try {
+      // 发布到附近分享
+      const foodNames = selectedFoods.map(f => f.name)
+      const foodIds = selectedFoods.map(f => f.id)
+      await createShare(title, foodNames, {
+        description,
+        location,
+        contact,
+        pickup_time: pickupTime,
+        food_ids: foodIds, // 保存食品ID，完成后再删除
+      })
+
+      // 添加捐赠记录（保存食品ID用于后续删除）
+      const donation = addDonation(selectedFoods, { title, foodIds })
+
+      // 暂不删除食品，等分享完成后再删除
+      // selectedFoods.forEach(food => deleteFood(food.id))
+
+      // 重新加载数据
+      loadDonations()
+      onReload()
+
+      // 关闭弹窗
+      setShowDonationModal(false)
+
+      // 重播动画
+      setAnimationProgress(0)
+      setIsAnimating(true)
+
+      // 保存最近捐赠（用于显示成功）
+      setLastDonation({
+        foods: selectedFoods,
+        title,
+        donation,
+      })
+
+      // Toast提示
+      showToast(`已发布到附近分享！`)
+    } catch (err) {
+      showToast('发布失败，请重试')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // 跳转到附近分享
+  const handleGoToNearby = () => {
+    setLastDonation(null)
+    onNavigate?.('community')
+  }
+
+  // 点击捐赠按钮
+  const handleDonateClick = () => {
+    if (!user) {
+      onLogin?.()
+      return
+    }
+    setShowDonationModal(true)
+  }
+
+  // 关闭成功卡片
+  const closeSuccessCard = () => {
+    setLastDonation(null)
   }
 
   const showToast = (message) => {
@@ -216,8 +276,8 @@ export default function DonatePage({ foods, onReload }) {
     setTimeout(() => setToast(''), 3000)
   }
 
-  // 计算可捐赠食品数量（临期食品）
-  const donatableCount = foods.filter(f => f.status === 'warning').length
+  // 计算可捐赠食品数量（所有非过期食品）
+  const donatableCount = foods.filter(f => f.status !== 'expired').length
 
   return (
     <div className="p-4 min-h-screen">
@@ -226,11 +286,11 @@ export default function DonatePage({ foods, onReload }) {
       <p className="text-gray-600 mb-6">今天，你做慈善了吗？</p>
 
       {/* 迷宫图 - 带老鼠动画 */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-8">
         <div className="relative w-full max-w-sm">
           {/* 迷宫底图 */}
           <img
-            src="/images/maze-bg.png"
+            src={`${import.meta.env.BASE_URL}images/maze-bg.png`}
             alt="捐赠迷宫"
             className="w-full h-auto object-contain"
           />
@@ -250,29 +310,13 @@ export default function DonatePage({ foods, onReload }) {
               style={{
                 width: '100%',
                 paddingBottom: '50%',
-                backgroundImage: 'url(/images/mouse.png)',
+                backgroundImage: `url(${import.meta.env.BASE_URL}images/mouse.png)`,
                 backgroundSize: '400% 100%',
-                backgroundPosition: `${mouseFrame * 33.33}% 0`,
+                backgroundPosition: `${mouseFrame === 3 ? 100 : mouseFrame * 33.33}% 0`,
                 backgroundRepeat: 'no-repeat',
               }}
             />
           </div>
-        </div>
-      </div>
-
-      {/* 动画控制 */}
-      <div className="flex items-center justify-center gap-4 mb-6">
-        <button
-          onClick={() => {
-            setAnimationProgress(0)
-            setIsAnimating(true)
-          }}
-          className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 flex items-center gap-2"
-        >
-          <span>🔄</span> 重播动画
-        </button>
-        <div className="text-sm text-gray-500">
-          进度: {Math.round(animationProgress)}%
         </div>
       </div>
 
@@ -299,7 +343,7 @@ export default function DonatePage({ foods, onReload }) {
       {/* 捐赠按钮 */}
       <div className="mt-8 space-y-3">
         <button
-          onClick={() => setShowDonationModal(true)}
+          onClick={handleDonateClick}
           disabled={donatableCount === 0}
           className={`w-full py-4 rounded-xl font-medium transition ${
             donatableCount > 0
@@ -307,7 +351,7 @@ export default function DonatePage({ foods, onReload }) {
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          捐赠临期食品 {donatableCount > 0 && `(${donatableCount}件可捐)`}
+          捐赠食品 {donatableCount > 0 && `(${donatableCount}件可捐)`}
         </button>
         <button
           onClick={() => setShowHistoryModal(true)}
@@ -319,8 +363,48 @@ export default function DonatePage({ foods, onReload }) {
 
       {/* 说明文字 */}
       <p className="text-center text-sm text-gray-400 mt-6">
-        将临期食品捐赠给需要的人，减少浪费
+        将食品捐赠给需要的人，减少浪费
       </p>
+
+      {/* 成功卡片 */}
+      {lastDonation && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-sm rounded-2xl p-6 text-center">
+            <div className="text-5xl mb-4">🎉</div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">发布成功！</h3>
+            <p className="text-gray-600 mb-4">
+              已将 <span className="font-medium text-cheese">{lastDonation.foods.length}</span> 件食品发布到附近分享
+            </p>
+            <div className="bg-gray-50 rounded-xl p-4 mb-4 text-left">
+              <p className="text-sm font-medium text-gray-700 mb-2">{lastDonation.title}</p>
+              <div className="flex flex-wrap gap-2">
+                {lastDonation.foods.map(f => (
+                  <span key={f.id} className="px-2 py-1 bg-white rounded text-xs text-gray-600 border">
+                    {f.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              附近的人可以在"社区 → 附近分享"中看到并领取
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={handleGoToNearby}
+                className="w-full py-3 bg-cheese text-gray-800 rounded-xl font-medium hover:bg-cheese-dark transition"
+              >
+                查看附近分享
+              </button>
+              <button
+                onClick={closeSuccessCard}
+                className="w-full py-2 text-gray-500 text-sm"
+              >
+                稍后再看
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 捐赠弹窗 */}
       {showDonationModal && (
@@ -328,6 +412,7 @@ export default function DonatePage({ foods, onReload }) {
           foods={foods}
           onClose={() => setShowDonationModal(false)}
           onSuccess={handleDonateSuccess}
+          isSubmitting={isSubmitting}
         />
       )}
 

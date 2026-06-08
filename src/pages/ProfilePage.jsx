@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { getCategoryById } from '../data/categories'
 import { getDonationStats } from '../utils/donationStorage'
 import { getConsumptionStats } from '../utils/consumptionStorage'
+import { EXPIRED_RANGE } from '../data/timeRanges'
 import SettingsModal from '../components/SettingsModal'
 
-export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate, onSettingsChange }) {
+export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate, onSettingsChange, onCloudSync, onCloudRestore, syncStatus }) {
   const [showSettings, setShowSettings] = useState(false)
 
   const expiredFoods = foods.filter(f => f.status === 'expired')
@@ -90,7 +91,7 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
           <h3 className="font-bold text-gray-800">过期食品</h3>
           {expiredFoods.length > 4 && (
             <button
-              onClick={() => onNavigate('home', { daysRange: [-9999, 0] })}
+              onClick={() => onNavigate('home', { daysRange: EXPIRED_RANGE })}
               className="text-sm text-cheese hover:underline"
             >
               查看全部 ({expiredFoods.length})
@@ -109,7 +110,7 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
               return (
                 <div
                   key={food.id}
-                  onClick={() => onNavigate('home', { daysRange: [-9999, 0] })}
+                  onClick={() => onNavigate('home', { daysRange: EXPIRED_RANGE })}
                   className="shrink-0 w-20 h-20 bg-red-50 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-red-100 transition"
                 >
                   <span className="text-2xl">{category?.icon || '📦'}</span>
@@ -137,7 +138,7 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
           )}
         </div>
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {foods.slice(0, 4).map((food) => {
+          {[...foods].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4).map((food) => {
             const category = getCategoryById(food.category)
             return (
               <div
@@ -162,6 +163,31 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
 
       {/* 设置入口 */}
       <div className="mt-8 space-y-3">
+        {/* 云同步按钮 */}
+        {user && (
+          <div className="bg-white border border-gray-200 rounded-xl p-4">
+            <p className="text-sm text-gray-600 mb-3">☁️ 云端同步</p>
+            <div className="flex gap-2">
+              <button
+                onClick={onCloudSync}
+                disabled={syncStatus === 'syncing'}
+                className="flex-1 py-2 bg-cheese text-gray-800 rounded-lg text-sm font-medium hover:bg-cheese-dark transition disabled:opacity-50"
+              >
+                {syncStatus === 'syncing' ? '同步中...' : '上传到云端'}
+              </button>
+              <button
+                onClick={onCloudRestore}
+                disabled={syncStatus === 'restoring'}
+                className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+              >
+                {syncStatus === 'restoring' ? '恢复中...' : '从云端恢复'}
+              </button>
+            </div>
+            {syncStatus === 'success' && <p className="text-green-500 text-xs mt-2">✓ 上传成功</p>}
+            {syncStatus === 'restored' && <p className="text-green-500 text-xs mt-2">✓ 恢复成功</p>}
+            {syncStatus === 'error' && <p className="text-red-500 text-xs mt-2">✗ 操作失败</p>}
+          </div>
+        )}
         <button
           onClick={() => setShowSettings(true)}
           className="w-full py-3 bg-white border border-gray-200 rounded-xl text-gray-700 flex items-center justify-center gap-2 px-4 hover:bg-gray-50 transition"

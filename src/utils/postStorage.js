@@ -44,6 +44,15 @@ function saveLikedPosts(liked) {
   }
 }
 
+// 追加一条已点赞记录（仅存ID，不修改帖子数据，适用于API帖子）
+export function addLikedPost(postId) {
+  const liked = getLikedPosts()
+  if (!liked.includes(postId)) {
+    liked.push(postId)
+    saveLikedPosts(liked)
+  }
+}
+
 // 检查是否已点赞
 export function hasLiked(postId) {
   const liked = getLikedPosts()

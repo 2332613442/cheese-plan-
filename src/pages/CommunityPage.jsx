@@ -1,84 +1,71 @@
 import { useState, useEffect } from 'react'
-import { getPosts, addPost, likePost, deletePost, getLikedPosts, hasLiked } from '../utils/postStorage'
+import { getPosts as getLocalPosts, addPost as addLocalPost, deletePost, getLikedPosts, addLikedPost, likePost as likeLocalPost } from '../utils/postStorage'
+import { getPosts as getApiPosts, createPost as createApiPost, likePost as likeApiPost, getComments, addComment } from '../utils/api'
 import CreatePostModal from '../components/CreatePostModal'
 import ConfirmModal from '../components/ConfirmModal'
+import NearbyPage from './NearbyPage'
 
-// 生成相对于当前时间的日期
-const getRelativeDate = (daysAgo) => {
-  const date = new Date()
-  date.setDate(date.getDate() - daysAgo)
-  return date.toISOString()
-}
-
-const mockPosts = [
-  {
-    id: 'mock-1',
-    author: 'Mice',
-    avatar: '🐭',
-    createdAt: getRelativeDate(1), // 1天前
-    content: '今日捐赠',
-    images: ['🍪', '🧃', '🍫'],
-    likes: 27,
-    comments: 30,
-    shares: 18,
-  },
-  {
-    id: 'mock-2',
-    author: 'Micky',
-    avatar: '🐹',
-    createdAt: getRelativeDate(3), // 3天前
-    content: '分享一下我的食品管理心得，定期检查冰箱真的很重要！',
-    images: ['🥛', '🧀'],
-    likes: 45,
-    comments: 12,
-    shares: 8,
-  },
-  {
-    id: 'mock-3',
-    author: '小芝士',
-    avatar: '🧀',
-    createdAt: getRelativeDate(7), // 1周前
-    content: '刚刚清理了一批临期零食，送给邻居小朋友了~',
-    images: ['🍬', '🍭', '🍪', '🧁'],
-    likes: 89,
-    comments: 23,
-    shares: 15,
-  },
-]
-
-export default function CommunityPage({ user, onLogin }) {
+export default function CommunityPage({ user, onLogin, foods }) {
+  const [activeSubTab, setActiveSubTab] = useState('posts')
   const [posts, setPosts] = useState([])
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [likedIds, setLikedIds] = useState([])
   const [toast, setToast] = useState('')
   const [deletingPost, setDeletingPost] = useState(null)
   const [likeAnimation, setLikeAnimation] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [expandedPost, setExpandedPost] = useState(null)
+  const [comments, setComments] = useState({})
+  const [commentTexts, setCommentTexts] = useState({})
+  const [loadingComments, setLoadingComments] = useState(false)
 
-  // 加载帖子：用户帖子 + mock帖子
   useEffect(() => {
     loadPosts()
     setLikedIds(getLikedPosts())
   }, [])
 
-  const loadPosts = () => {
-    const storedPosts = getPosts()
-    // 格式化用户帖子
-    const formattedPosts = storedPosts.map(post => ({
-      ...post,
-      time: formatRelativeTime(post.createdAt),
-      images: [],
-      comments: 0,
-      shares: 0,
-    }))
-    // mock帖子也格式化时间
-    const formattedMockPosts = mockPosts.map(post => ({
-      ...post,
-      time: formatRelativeTime(post.createdAt),
-    }))
-    setPosts([...formattedPosts, ...formattedMockPosts])
+  const loadPosts = async () => {
+    setLoading(true)
+    try {
+      // 尝试从服务器加载
+      const apiPosts = await getApiPosts()
+      const formattedApiPosts = apiPosts.map(post => ({
+        id: post.id,
+        author: post.username || '用户',
+        avatar: post.avatar || '🧀',
+        createdAt: post.created_at,
+        content: post.content,
+        likes: post.likes || 0,
+        comments: 0,
+        shares: 0,
+        isApi: true,
+      }))
+
+      // 本地帖子去重：过滤掉内容与API帖子重复的条目（同作者+同内容）
+      const apiContents = new Set(formattedApiPosts.map(p => `${p.author}|${p.content}`))
+      const localPosts = getLocalPosts()
+        .filter(post => !apiContents.has(`${post.author}|${post.content}`))
+        .map(post => ({
+          ...post,
+          isApi: false,
+        }))
+
+      const allPosts = [...formattedApiPosts, ...localPosts]
+      allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      setPosts(allPosts.map(p => ({ ...p, time: formatRelativeTime(p.createdAt) })))
+    } catch (err) {
+      // 服务器不可用，使用本地数据
+      const localPosts = getLocalPosts().map(post => ({
+        ...post,
+        time: formatRelativeTime(post.createdAt),
+        isApi: false,
+      }))
+      setPosts(localPosts)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // 相对时间格式化
   const formatRelativeTime = (isoString) => {
     const date = new Date(isoString)
     const now = new Date()
@@ -96,34 +83,53 @@ export default function CommunityPage({ user, onLogin }) {
     return `${Math.floor(diffDays / 365)}年前`
   }
 
-  const handleLike = (postId) => {
-    // 检查是否已点赞
+  const handleLike = async (postId) => {
     if (likedIds.includes(postId)) {
       showToast('已经点过赞了')
       return
     }
 
-    // 触发动画
     setLikeAnimation(postId)
     setTimeout(() => setLikeAnimation(null), 300)
 
-    // 保存点赞（非mock帖子）
-    if (!String(postId).startsWith('mock-')) {
-      likePost(postId)
-    }
-
-    // 更新状态
-    setLikedIds([...likedIds, postId])
+    // 更新本地状态
+    const updatedIds = [...likedIds, postId]
+    setLikedIds(updatedIds)
     setPosts(posts.map(post =>
       post.id === postId
         ? { ...post, likes: post.likes + 1 }
         : post
     ))
+
+    // 尝试调用API
+    try {
+      if (user) {
+        await likeApiPost(postId)
+      }
+      addLikedPost(postId)
+    } catch (err) {
+      addLikedPost(postId)
+    }
+
+    // 对本地帖子同步更新存储中的点赞数
+    const targetPost = posts.find(p => p.id === postId)
+    if (targetPost && !targetPost.isApi) {
+      likeLocalPost(postId)
+    }
   }
 
-  const handleCreatePost = (postData) => {
-    addPost(postData)
+  const handleCreatePost = async (postData) => {
+    // 始终保存到本地，确保离线时也能看到自己的帖子
+    addLocalPost(postData)
+    if (user) {
+      try {
+        await createApiPost(postData.content)
+      } catch (err) {
+        // 服务器失败，本地已保存，忽略错误
+      }
+    }
     loadPosts()
+    showToast('发布成功')
   }
 
   const handleAddClick = () => {
@@ -151,96 +157,183 @@ export default function CommunityPage({ user, onLogin }) {
     setTimeout(() => setToast(''), 2000)
   }
 
-  const handleCommentClick = () => {
-    showToast('评论功能暂未开放')
+  const handleExpandPost = async (postId) => {
+    if (expandedPost === postId) {
+      setExpandedPost(null)
+      return
+    }
+    setExpandedPost(postId)
+    if (!comments[postId]) {
+      setLoadingComments(true)
+      try {
+        const data = await getComments(postId)
+        setComments(prev => ({ ...prev, [postId]: data }))
+      } catch (err) {
+        setComments(prev => ({ ...prev, [postId]: [] }))
+      } finally {
+        setLoadingComments(false)
+      }
+    }
   }
 
-  const handleShareClick = () => {
-    showToast('转发功能暂未开放')
+  const handleSubmitComment = async (postId) => {
+    const commentText = (commentTexts[postId] || '').trim()
+    if (!commentText) return
+    if (!user) {
+      onLogin()
+      return
+    }
+    try {
+      const newComment = await addComment(postId, commentText)
+      setComments(prev => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), newComment]
+      }))
+      setCommentTexts(prev => ({ ...prev, [postId]: '' }))
+      showToast('评论成功')
+    } catch (err) {
+      showToast('评论失败')
+    }
   }
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold text-gray-800 mb-1">交流区</h2>
-      <p className="text-sm text-gray-400 mb-6">COMMUNICATION REGION</p>
+      <p className="text-sm text-gray-400 mb-4">COMMUNICATION REGION</p>
 
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <div key={post.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            {/* 作者信息 */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{post.avatar}</span>
-                <div>
-                  <p className="font-medium text-gray-800">{post.author}</p>
-                  <p className="text-xs text-gray-400">{post.time}</p>
+      {/* 子标签切换 */}
+      <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+        <button
+          onClick={() => setActiveSubTab('posts')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+            activeSubTab === 'posts' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+          }`}
+        >
+          💬 帖子
+        </button>
+        <button
+          onClick={() => setActiveSubTab('nearby')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+            activeSubTab === 'nearby' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
+          }`}
+        >
+          📤 附近分享
+        </button>
+      </div>
+
+      {/* 附近分享子页 */}
+      {activeSubTab === 'nearby' && (
+        <NearbyPage user={user} onLogin={onLogin} foods={foods} />
+      )}
+
+      {/* 帖子列表 */}
+      {activeSubTab === 'posts' && (
+        <>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block w-8 h-8 border-4 border-cheese border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 mt-2">加载中...</p>
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-12">
+          <span className="text-5xl block mb-4">📝</span>
+          <p className="text-gray-500">暂无帖子</p>
+          <p className="text-gray-400 text-sm mt-1">成为第一个发帖的人吧！</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <div key={post.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{post.avatar}</span>
+                  <div>
+                    <p className="font-medium text-gray-800">{post.author}</p>
+                    <p className="text-xs text-gray-400">{post.time}</p>
+                  </div>
                 </div>
+                {user && post.author === user.username && !post.isApi && (
+                  <button
+                    onClick={() => handleDeletePost(post)}
+                    className="text-gray-400 hover:text-red-500 text-sm"
+                  >
+                    删除
+                  </button>
+                )}
               </div>
-              {/* 删除按钮（仅自己的帖子） */}
-              {user && post.author === user.username && !String(post.id).startsWith('mock-') && (
+
+              <p className="text-gray-700 mb-3">{post.content}</p>
+
+              <div className="flex gap-6 text-sm text-gray-500 border-t pt-3">
                 <button
-                  onClick={() => handleDeletePost(post)}
-                  className="text-gray-400 hover:text-red-500 text-sm"
+                  onClick={() => handleLike(post.id)}
+                  className={`flex items-center gap-1 transition-transform ${
+                    likedIds.includes(post.id) ? 'text-red-500' : 'hover:text-cheese'
+                  } ${likeAnimation === post.id ? 'scale-125' : ''}`}
                 >
-                  删除
+                  <span>{likedIds.includes(post.id) ? '❤️' : '👍'}</span>
+                  <span>点赞 {post.likes}</span>
                 </button>
+                <button
+                  onClick={() => handleExpandPost(post.id)}
+                  className={`flex items-center gap-1 ${expandedPost === post.id ? 'text-cheese' : 'hover:text-cheese'}`}
+                >
+                  <span>💬</span>
+                  <span>评论 {comments[post.id]?.length || 0}</span>
+                </button>
+              </div>
+
+              {/* 评论区 */}
+              {expandedPost === post.id && (
+                <div className="mt-3 pt-3 border-t">
+                  {loadingComments ? (
+                    <p className="text-sm text-gray-400">加载评论...</p>
+                  ) : (
+                    <>
+                      {comments[post.id]?.length > 0 ? (
+                        <div className="space-y-2 mb-3">
+                          {comments[post.id].map((c, i) => (
+                            <div key={c.id || i} className="flex gap-2 text-sm">
+                              <span>{c.avatar || '🧀'}</span>
+                              <div>
+                                <span className="font-medium text-gray-700">{c.username}</span>
+                                <span className="text-gray-500 ml-2">{c.content}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400 mb-3">暂无评论</p>
+                      )}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={commentTexts[post.id] || ''}
+                          onChange={(e) => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                          placeholder={user ? "写评论..." : "登录后评论"}
+                          className="flex-1 px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:border-cheese"
+                          onKeyDown={(e) => e.key === 'Enter' && handleSubmitComment(post.id)}
+                        />
+                        <button
+                          onClick={() => handleSubmitComment(post.id)}
+                          className="px-3 py-1.5 bg-cheese text-gray-800 rounded-lg text-sm"
+                        >
+                          发送
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* 内容 */}
-            <p className="text-gray-700 mb-3">{post.content}</p>
-
-            {/* 图片/表情展示 - 仅当有图片时显示 */}
-            {post.images && post.images.length > 0 && (
-              <div className="flex gap-2 mb-4 flex-wrap">
-                {post.images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="w-16 h-16 bg-cheese-light rounded-lg flex items-center justify-center text-2xl"
-                  >
-                    {img}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* 互动按钮 */}
-            <div className="flex gap-6 text-sm text-gray-500 border-t pt-3">
-              <button
-                onClick={() => handleLike(post.id)}
-                className={`flex items-center gap-1 transition-transform ${
-                  likedIds.includes(post.id) ? 'text-red-500' : 'hover:text-cheese'
-                } ${likeAnimation === post.id ? 'scale-125' : ''}`}
-              >
-                <span>{likedIds.includes(post.id) ? '❤️' : '👍'}</span>
-                <span>点赞 {post.likes}</span>
-              </button>
-              <button
-                onClick={handleCommentClick}
-                className="flex items-center gap-1 hover:text-cheese"
-              >
-                <span>💬</span>
-                <span>评论 {post.comments}</span>
-              </button>
-              <button
-                onClick={handleShareClick}
-                className="flex items-center gap-1 hover:text-cheese"
-              >
-                <span>🔄</span>
-                <span>转发 {post.shares}</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 发帖提示 */}
       <div className="mt-6 p-4 bg-cheese-light rounded-xl text-center">
-        <p className="text-gray-800">💡 每日一捐，传递温暖</p>
-        <p className="text-sm text-gray-700 mt-1">分享你的食品管理经验</p>
+        <p className="text-gray-800">💡 分享你的食品管理经验</p>
       </div>
 
-      {/* 发帖浮动按钮 */}
       <button
         onClick={handleAddClick}
         className="fixed bottom-24 right-6 w-14 h-14 bg-cheese text-gray-800 rounded-full shadow-lg text-xl hover:bg-cheese-dark active:scale-95 transition flex items-center justify-center"
@@ -248,7 +341,6 @@ export default function CommunityPage({ user, onLogin }) {
         ✏️
       </button>
 
-      {/* 发帖弹窗 */}
       {showCreateModal && user && (
         <CreatePostModal
           user={user}
@@ -257,7 +349,6 @@ export default function CommunityPage({ user, onLogin }) {
         />
       )}
 
-      {/* 删除确认弹窗 */}
       {deletingPost && (
         <ConfirmModal
           title="删除帖子"
@@ -270,11 +361,12 @@ export default function CommunityPage({ user, onLogin }) {
         />
       )}
 
-      {/* Toast提示 */}
       {toast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm z-50">
           {toast}
         </div>
+      )}
+      </>
       )}
     </div>
   )

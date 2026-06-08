@@ -1,10 +1,11 @@
 export default function TabBar({ active, onChange }) {
+  const baseUrl = import.meta.env.BASE_URL
   const tabs = [
-    { id: 'home', icon: '/images/tabs/home.png', label: '首页' },
-    { id: 'timer', icon: '/images/tabs/timer.png', label: '时长' },
-    { id: 'community', icon: '/images/tabs/community.png', label: '交流' },
-    { id: 'donate', icon: '/images/tabs/donate.png', label: '捐赠' },
-    { id: 'profile', icon: '/images/tabs/profile.png', label: '我的' },
+    { id: 'home', icon: `${baseUrl}images/tabs/home.png`, label: '首页' },
+    { id: 'timer', icon: `${baseUrl}images/tabs/timer.png`, label: '时长' },
+    { id: 'community', icon: `${baseUrl}images/tabs/community.png`, label: '交流' },
+    { id: 'donate', icon: `${baseUrl}images/tabs/donate.png`, label: '捐赠' },
+    { id: 'profile', icon: `${baseUrl}images/tabs/profile.png`, label: '我的' },
   ]
 
   return (

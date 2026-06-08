@@ -8,7 +8,7 @@ export default function SplashScreen({ fadeOut }) {
       {/* 奶酪图标 - 使用原始素材 100%还原 */}
       <div className="mb-6 animate-bounce-slow">
         <img
-          src="/images/cheese-logo.png"
+          src={`${import.meta.env.BASE_URL}images/cheese-logo.png`}
           alt="奶酪计划"
           className="w-32 h-auto object-contain"
         />
@@ -17,7 +17,7 @@ export default function SplashScreen({ fadeOut }) {
       {/* 奶酪计划文字 - 使用原始素材 100%还原 */}
       <div className="mb-4">
         <img
-          src="/images/cheese-text.png"
+          src={`${import.meta.env.BASE_URL}images/cheese-text.png`}
           alt="奶酪计划"
           className="w-48 h-auto object-contain"
         />

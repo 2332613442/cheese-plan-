@@ -26,6 +26,11 @@ export default function EditFoodModal({ food, onClose, onSuccess }) {
     }
 
     const days = parseInt(shelfLifeDays)
+    if (isNaN(days) || days < 1) {
+      alert('保质期必须大于0天')
+      return
+    }
+
     const expirationDate = calculateExpirationDate(productionDate, days)
 
     updateFood(food.id, {

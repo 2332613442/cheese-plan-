@@ -1,7 +1,6 @@
 // 分享卡片组件
 
 export default function ShareCard({ share, onClick }) {
-  const profile = share.profiles || {}
   const foodCount = share.foods?.length || 0
 
   // 格式化时间
@@ -25,6 +24,7 @@ export default function ShareCard({ share, onClick }) {
     available: { label: '可领取', color: 'bg-green-100 text-green-700' },
     claimed: { label: '已被领', color: 'bg-yellow-100 text-yellow-700' },
     completed: { label: '已完成', color: 'bg-gray-100 text-gray-700' },
+    cancelled: { label: '已取消', color: 'bg-red-100 text-red-700' },
   }
   const status = statusConfig[share.status] || statusConfig.available
 
@@ -35,17 +35,9 @@ export default function ShareCard({ share, onClick }) {
     >
       <div className="flex gap-3">
         {/* 图片预览 */}
-        {share.images && share.images.length > 0 ? (
-          <img
-            src={share.images[0]}
-            alt=""
-            className="w-20 h-20 object-cover rounded-lg shrink-0"
-          />
-        ) : (
-          <div className="w-20 h-20 bg-cheese-light rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-3xl">🧀</span>
-          </div>
-        )}
+        <div className="w-20 h-20 bg-cheese-light rounded-lg flex items-center justify-center shrink-0">
+          <span className="text-3xl">🧀</span>
+        </div>
 
         {/* 内容 */}
         <div className="flex-1 min-w-0">
@@ -62,13 +54,13 @@ export default function ShareCard({ share, onClick }) {
 
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-2 text-xs text-gray-400">
-              <span>{profile.avatar || '🧀'}</span>
-              <span>{profile.username || '匿名用户'}</span>
+              <span>{share.avatar || '🧀'}</span>
+              <span>{share.username || '匿名用户'}</span>
               <span>·</span>
               <span>{formatTime(share.created_at)}</span>
             </div>
-            {share.location_text && (
-              <span className="text-xs text-gray-400">📍 {share.location_text}</span>
+            {share.location && (
+              <span className="text-xs text-gray-400 truncate max-w-[100px]">📍 {share.location}</span>
             )}
           </div>
         </div>
@@ -77,17 +69,17 @@ export default function ShareCard({ share, onClick }) {
       {/* 食品标签 */}
       {share.foods && share.foods.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
-          {share.foods.slice(0, 3).map((food, idx) => (
+          {(typeof share.foods === 'string' ? JSON.parse(share.foods) : share.foods).slice(0, 3).map((food, idx) => (
             <span
               key={idx}
               className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded"
             >
-              {food.name}
+              {typeof food === 'string' ? food : food.name}
             </span>
           ))}
-          {share.foods.length > 3 && (
+          {(typeof share.foods === 'string' ? JSON.parse(share.foods) : share.foods).length > 3 && (
             <span className="text-xs px-2 py-1 text-gray-400">
-              +{share.foods.length - 3}
+              +{(typeof share.foods === 'string' ? JSON.parse(share.foods) : share.foods).length - 3}
             </span>
           )}
         </div>

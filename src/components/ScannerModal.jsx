@@ -3,6 +3,16 @@ import { Html5Qrcode } from 'html5-qrcode'
 
 export default function ScannerModal({ onScan, onClose }) {
   const scannerRef = useRef(null)
+  const onScanRef = useRef(onScan)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onScanRef.current = onScan
+  }, [onScan])
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     const scanner = new Html5Qrcode('scanner')
@@ -16,8 +26,8 @@ export default function ScannerModal({ onScan, onClose }) {
       },
       (decodedText) => {
         scanner.stop().then(() => {
-          onScan(decodedText)
-          onClose()
+          onScanRef.current(decodedText)
+          onCloseRef.current()
         })
       },
       () => {}
@@ -31,7 +41,7 @@ export default function ScannerModal({ onScan, onClose }) {
         scannerRef.current.stop()
       }
     }
-  }, [onScan, onClose])
+  }, []) // 仅挂载时运行一次
 
   return (
     <div className="fixed inset-0 bg-black z-[100]">

@@ -30,10 +30,16 @@ export default function AddFoodModal({ onClose, onSuccess, initialBarcode = '' }
       return
     }
 
+    const days = parseInt(shelfLifeDays)
+    if (isNaN(days) || days < 1) {
+      alert('保质期必须大于0天')
+      return
+    }
+
     const food = createFood(
       name.trim(),
       productionDate,
-      parseInt(shelfLifeDays),
+      days,
       category,
       {
         barcode: barcode.trim(),
@@ -67,7 +73,7 @@ export default function AddFoodModal({ onClose, onSuccess, initialBarcode = '' }
 
         setLookupMessage(`已识别：${product.name || '未知商品'}`)
       } else {
-        setLookupMessage('未找到商品信息，请手动填写')
+        setLookupMessage('该商品暂未收录，请手动填写名称和保质期')
       }
     } catch (error) {
       setLookupMessage('查询失败，请手动填写')

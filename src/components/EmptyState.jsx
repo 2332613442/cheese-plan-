@@ -4,7 +4,7 @@ export default function EmptyState({ onAdd }) {
       {/* 奶酪图标带动画 */}
       <div className="mb-6">
         <img
-          src="/images/cheese-logo.png"
+          src={`${import.meta.env.BASE_URL}images/cheese-logo.png`}
           alt="奶酪"
           className="w-24 h-24 mx-auto opacity-60 animate-bounce"
           style={{ animationDuration: '2s' }}

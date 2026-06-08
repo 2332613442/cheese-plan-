@@ -9,7 +9,7 @@ function CheeseIcon({ type, size = 48 }) {
 
   return (
     <img
-      src={`/images/cheese/${iconType}.png`}
+      src={`${import.meta.env.BASE_URL}images/cheese/${iconType}.png`}
       alt={iconType}
       style={{
         width: size,
@@ -46,7 +46,7 @@ export default function TimerPage({ foods, onNavigate }) {
         }`}>
           {urgentCount > 0 ? (
             <img
-              src="/images/cry-face.png"
+              src={`${import.meta.env.BASE_URL}images/cry-face.png`}
               alt="急需处理"
               className="w-28 h-28 object-contain"
             />

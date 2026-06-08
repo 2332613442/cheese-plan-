@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 
 // 压缩图片
-async function compressImage(file, maxWidth = 800, quality = 0.7) {
-  return new Promise((resolve) => {
+async function compressImage(file, maxWidth = 400, quality = 0.7) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = (e) => {
       const img = new Image()
@@ -23,7 +23,19 @@ async function compressImage(file, maxWidth = 800, quality = 0.7) {
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0, width, height)
 
-        const dataUrl = canvas.toDataURL('image/jpeg', quality)
+        let dataUrl = canvas.toDataURL('image/jpeg', quality)
+
+        // 如果压缩后仍超过 100KB，降低质量再压一次
+        if (dataUrl.length > 100 * 1024) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.4)
+        }
+
+        // 超过 200KB 则拒绝（防止 localStorage 溢出）
+        if (dataUrl.length > 200 * 1024) {
+          reject(new Error('图片过大，请选择更小的图片'))
+          return
+        }
+
         resolve(dataUrl)
       }
       img.src = e.target.result
@@ -46,8 +58,12 @@ export default function ImagePicker({ value, onChange }) {
     }
 
     // 压缩图片
-    const compressed = await compressImage(file)
-    onChange(compressed)
+    try {
+      const compressed = await compressImage(file)
+      onChange(compressed)
+    } catch (err) {
+      alert(err.message || '图片处理失败，请选择更小的图片')
+    }
   }
 
   const handleRemove = () => {

@@ -34,9 +34,16 @@ export default function DonationHistory({ donations, onClose }) {
                   className="bg-cheese-light rounded-xl p-4"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm text-gray-600">
-                      {formatDate(donation.createdAt)} {formatTime(donation.createdAt)}
-                    </span>
+                    <div>
+                      <span className="text-sm text-gray-600">
+                        {formatDate(donation.createdAt)} {formatTime(donation.createdAt)}
+                      </span>
+                      {donation.shareTitle && (
+                        <p className="text-sm font-medium text-gray-700 mt-1">
+                          📤 {donation.shareTitle}
+                        </p>
+                      )}
+                    </div>
                     <span className="px-2 py-1 bg-cheese rounded-full text-xs font-medium text-gray-800">
                       {donation.foodCount} 件
                     </span>

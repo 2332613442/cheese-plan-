@@ -1,8 +1,10 @@
 // Web Notification API 封装
 
-import { getReminderSchedule } from './settingsStorage'
+import { getReminderSchedule, getSettings } from './settingsStorage'
 
 const NOTIFIED_KEY = 'cheese-plan-notified-foods'
+const DAILY_SUMMARY_KEY = 'cheese-plan-daily-summary'
+const BASE_URL = import.meta.env.BASE_URL || '/'
 
 // 请求通知权限
 export async function requestNotificationPermission() {
@@ -38,8 +40,8 @@ export function sendNotification(title, options = {}) {
   }
 
   return new Notification(title, {
-    icon: '/images/cheese-logo.png',
-    badge: '/images/cheese-logo.png',
+    icon: `${BASE_URL}images/cheese-logo.png`,
+    badge: `${BASE_URL}images/cheese-logo.png`,
     ...options,
   })
 }
@@ -95,8 +97,13 @@ function cleanOldNotifications() {
 
 // 检查临期食品并发送通知
 export function checkExpiringFoods(foods) {
-  // 只有在权限允许时才执行
+  // 只有在权限允许且用户开启通知时才执行
   if (Notification.permission !== 'granted') {
+    return
+  }
+
+  const { notificationEnabled } = getSettings()
+  if (notificationEnabled === false) {
     return
   }
 
@@ -130,9 +137,7 @@ export function checkExpiringFoods(foods) {
 
         // 发送通知
         let message
-        if (daysRemaining === 0) {
-          message = `${food.name} 今天到期，请及时处理！`
-        } else if (daysRemaining === 1) {
+        if (daysRemaining === 1) {
           message = `${food.name} 明天到期，请及时处理！`
         } else {
           message = `${food.name} 将在 ${daysRemaining} 天后过期，请及时处理`
@@ -148,4 +153,86 @@ export function checkExpiringFoods(foods) {
       }
     })
   })
+}
+
+// 获取今日日期字符串
+function getTodayString() {
+  return new Date().toISOString().split('T')[0]
+}
+
+// 检查今日是否已发送摘要
+function hasSentDailySummary() {
+  const lastSent = localStorage.getItem(DAILY_SUMMARY_KEY)
+  return lastSent === getTodayString()
+}
+
+// 标记今日已发送摘要
+function markDailySummarySent() {
+  localStorage.setItem(DAILY_SUMMARY_KEY, getTodayString())
+}
+
+// 发送每日摘要通知
+export function sendDailySummary(foods) {
+  if (Notification.permission !== 'granted') {
+    return false
+  }
+
+  const { notificationEnabled } = getSettings()
+  if (notificationEnabled === false) {
+    return false
+  }
+
+  // 今日已发送则跳过
+  if (hasSentDailySummary()) {
+    return false
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // 统计各类食品数量
+  let expiredToday = 0
+  let expiringIn3Days = 0
+  let expiringIn7Days = 0
+
+  foods.forEach((food) => {
+    const expirationDate = new Date(food.expirationDate)
+    expirationDate.setHours(0, 0, 0, 0)
+    const diffTime = expirationDate.getTime() - today.getTime()
+    const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (daysRemaining === 0) {
+      expiredToday++
+    } else if (daysRemaining > 0 && daysRemaining <= 3) {
+      expiringIn3Days++
+    } else if (daysRemaining > 3 && daysRemaining <= 7) {
+      expiringIn7Days++
+    }
+  })
+
+  // 没有需要提醒的食品则跳过
+  if (expiredToday === 0 && expiringIn3Days === 0 && expiringIn7Days === 0) {
+    markDailySummarySent()
+    return false
+  }
+
+  // 构建摘要消息
+  const parts = []
+  if (expiredToday > 0) {
+    parts.push(`${expiredToday}件今日到期`)
+  }
+  if (expiringIn3Days > 0) {
+    parts.push(`${expiringIn3Days}件3天内到期`)
+  }
+  if (expiringIn7Days > 0) {
+    parts.push(`${expiringIn7Days}件7天内到期`)
+  }
+
+  sendNotification('每日食品摘要', {
+    body: parts.join('，') + '，请及时处理',
+    tag: 'daily-summary',
+  })
+
+  markDailySummarySent()
+  return true
 }
