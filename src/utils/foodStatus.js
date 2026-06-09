@@ -1,4 +1,5 @@
 import { getReminderDays } from './settingsStorage'
+import { generateUUID } from './uuid'
 
 export const calculateExpirationDate = (productionDate, shelfLifeDays) => {
   const date = new Date(productionDate)
@@ -51,7 +52,7 @@ export const createFood = (name, productionDate, shelfLifeDays, category, option
   const now = new Date().toISOString()
 
   return {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     name,
     barcode: options.barcode || '',
     category,

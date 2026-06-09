@@ -1,5 +1,7 @@
 // 捐赠记录存储
 
+import { generateUUID } from './uuid'
+
 const DONATIONS_KEY = 'cheese-plan-donations'
 
 // 获取所有捐赠记录
@@ -28,7 +30,7 @@ function saveDonations(donations) {
 export function addDonation(foods, shareInfo = null) {
   const donations = getDonations()
   const newDonation = {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     foods: foods.map(f => ({
       id: f.id,
       name: f.name,

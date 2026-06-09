@@ -1,5 +1,7 @@
 // 帖子数据存储
 
+import { generateUUID } from './uuid'
+
 const POSTS_KEY = 'cheese-plan-posts'
 const LIKED_KEY = 'cheese-plan-liked-posts'
 
@@ -63,7 +65,7 @@ export function hasLiked(postId) {
 export function addPost(post) {
   const posts = getPosts()
   const newPost = {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     ...post,
     likes: 0,
     createdAt: new Date().toISOString(),

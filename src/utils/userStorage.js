@@ -1,5 +1,7 @@
 // 用户数据存储
 
+import { generateUUID } from './uuid'
+
 const USER_KEY = 'cheese-plan-user'
 
 // 获取当前用户
@@ -36,7 +38,7 @@ export function clearUser() {
 // 创建新用户
 export function createUser(username, avatar) {
   const user = {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     username,
     avatar,
     level: 1,

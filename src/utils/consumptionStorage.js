@@ -1,5 +1,7 @@
 // 食品消耗记录存储
 
+import { generateUUID } from './uuid'
+
 const CONSUMPTION_KEY = 'cheese-plan-consumption'
 
 // 获取所有消耗记录
@@ -32,7 +34,7 @@ export function addConsumption(food) {
   const expirationDate = new Date(food.expirationDate)
 
   const newRecord = {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     food: {
       id: food.id,
       name: food.name,
