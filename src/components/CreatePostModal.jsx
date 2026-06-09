@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 
 export default function CreatePostModal({ user, onClose, onSuccess }) {
   const [content, setContent] = useState('')
@@ -29,7 +30,13 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
       <div className="bg-white w-full max-w-sm rounded-2xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">发布动态</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>

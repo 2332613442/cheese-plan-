@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { PartyPopper } from 'lucide-react'
 import { getDonations, addDonation, getDonationStats } from '../utils/donationStorage'
 import { createShare } from '../utils/api'
 import DonationModal from '../components/DonationModal'
@@ -370,7 +371,9 @@ export default function DonatePage({ foods, onReload, user, onLogin, onNavigate 
       {lastDonation && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm rounded-2xl p-6 text-center">
-            <div className="text-5xl mb-4">🎉</div>
+            <div className="w-16 h-16 mx-auto mb-4 bg-cheese-light rounded-full flex items-center justify-center">
+              <PartyPopper size={32} className="text-cheese" />
+            </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">发布成功！</h3>
             <p className="text-gray-600 mb-4">
               已将 <span className="font-medium text-cheese">{lastDonation.foods.length}</span> 件食品发布到附近分享

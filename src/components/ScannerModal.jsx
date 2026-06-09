@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 
 export default function ScannerModal({ onScan, onClose }) {
@@ -48,9 +49,10 @@ export default function ScannerModal({ onScan, onClose }) {
       <div className="relative h-full">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 rounded-full text-white text-xl"
+          className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 rounded-full text-white flex items-center justify-center hover:bg-white/30 transition"
+          aria-label="关闭扫码"
         >
-          ✕
+          <X size={24} />
         </button>
 
         <div className="h-full flex flex-col items-center justify-center">

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, Check } from 'lucide-react'
 import { createShare } from '../utils/shareService'
 import { getFoods } from '../utils/storage'
 import { getCategoryById } from '../data/categories'
@@ -71,7 +72,13 @@ export default function CreateShareModal({ user, onClose, onSuccess }) {
       <div className="bg-white w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold">发布分享</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,7 +132,7 @@ export default function CreateShareModal({ user, onClose, onSuccess }) {
                       <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                         isSelected ? 'border-cheese bg-cheese' : 'border-gray-300'
                       }`}>
-                        {isSelected && <span className="text-white text-xs">✓</span>}
+                        {isSelected && <Check size={12} className="text-white" />}
                       </div>
                       {food.image ? (
                         <img src={food.image} alt="" className="w-10 h-10 rounded object-cover" />

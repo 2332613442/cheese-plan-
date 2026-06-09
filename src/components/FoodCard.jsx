@@ -1,6 +1,7 @@
 import { getStatusInfo, getDaysRemaining } from '../utils/foodStatus'
 import { getCategoryById } from '../data/categories'
 import { getUnitName } from '../data/units'
+import { Check, Pencil, Trash2 } from 'lucide-react'
 
 export default function FoodCard({ food, onEdit, onDelete, onConsume, batchMode = false, selected = false, onToggleSelect }) {
   const statusInfo = getStatusInfo(food.status)
@@ -52,7 +53,7 @@ export default function FoodCard({ food, onEdit, onDelete, onConsume, batchMode 
           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 self-center ${
             selected ? 'border-cheese bg-cheese' : 'border-gray-300'
           }`}>
-            {selected && <span className="text-white text-xs">✓</span>}
+            {selected && <Check className="text-white" size={12} />}
           </div>
         )}
 
@@ -79,22 +80,24 @@ export default function FoodCard({ food, onEdit, onDelete, onConsume, batchMode 
           <div className="flex flex-col gap-1 shrink-0">
             <button
               onClick={() => onConsume && onConsume(food)}
-              className="text-gray-400 hover:text-green-500"
-              title="已消耗"
+              className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition"
+              aria-label="标记为已消耗"
             >
-              ✅
+              <Check size={18} />
             </button>
             <button
               onClick={() => onEdit && onEdit(food)}
-              className="text-gray-400 hover:text-cheese"
+              className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-cheese hover:bg-cheese-light rounded-lg transition"
+              aria-label="编辑食品"
             >
-              ✏️
+              <Pencil size={18} />
             </button>
             <button
               onClick={() => onDelete && onDelete(food.id)}
-              className="text-gray-400 hover:text-red-500"
+              className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+              aria-label="删除食品"
             >
-              🗑️
+              <Trash2 size={18} />
             </button>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { X, Camera } from 'lucide-react'
 
 // 压缩图片
 async function compressImage(file, maxWidth = 400, quality = 0.7) {
@@ -95,9 +96,10 @@ export default function ImagePicker({ value, onChange }) {
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-2 right-2 w-6 h-6 bg-black/50 text-white rounded-full text-sm hover:bg-black/70"
+            className="absolute top-2 right-2 w-6 h-6 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70"
+            aria-label="移除图片"
           >
-            ✕
+            <X size={14} />
           </button>
         </div>
       ) : (
@@ -105,7 +107,7 @@ export default function ImagePicker({ value, onChange }) {
           htmlFor="food-image-input"
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-cheese transition"
         >
-          <span className="text-3xl mb-1">📷</span>
+          <Camera size={32} className="text-gray-400 mb-1" />
           <span className="text-sm text-gray-500">点击拍照或选择图片</span>
         </label>
       )}

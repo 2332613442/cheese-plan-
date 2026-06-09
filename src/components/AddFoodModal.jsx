@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, Camera, Loader2 } from 'lucide-react'
 import { categories } from '../data/categories'
 import { units } from '../data/units'
 import { createFood } from '../utils/foodStatus'
@@ -110,7 +111,13 @@ export default function AddFoodModal({ onClose, onSuccess, initialBarcode = '' }
       <div className="bg-white w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold">添加食品</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -212,15 +219,17 @@ export default function AddFoodModal({ onClose, onSuccess, initialBarcode = '' }
                 type="button"
                 onClick={() => setShowScanner(true)}
                 disabled={isLookingUp}
-                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 disabled:opacity-50 flex items-center gap-1"
               >
-                📷 扫码
+                <Camera size={18} />
+                扫码
               </button>
             </div>
             {/* 查询状态提示 */}
             {lookupMessage && (
-              <p className={`text-sm mt-1 ${lookupMessage.includes('已识别') ? 'text-green-600' : 'text-gray-500'}`}>
-                {isLookingUp && '⏳ '}{lookupMessage}
+              <p className={`text-sm mt-1 flex items-center gap-1 ${lookupMessage.includes('已识别') ? 'text-green-600' : 'text-gray-500'}`}>
+                {isLookingUp && <Loader2 size={14} className="animate-spin" />}
+                {lookupMessage}
               </p>
             )}
           </div>

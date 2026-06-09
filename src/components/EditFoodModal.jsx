@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, Camera } from 'lucide-react'
 import { categories } from '../data/categories'
 import { units } from '../data/units'
 import { calculateExpirationDate, calculateStatus } from '../utils/foodStatus'
@@ -68,7 +69,13 @@ export default function EditFoodModal({ food, onClose, onSuccess }) {
       <div className="bg-white w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold">编辑食品</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -166,9 +173,10 @@ export default function EditFoodModal({ food, onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={() => setShowScanner(true)}
-                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200"
+                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 flex items-center gap-1"
               >
-                📷 扫码
+                <Camera size={18} />
+                扫码
               </button>
             </div>
           </div>

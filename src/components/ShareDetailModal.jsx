@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, Clock, CheckCircle, MapPin } from 'lucide-react'
 import { claimShare, sendMessage, getShareMessages } from '../utils/shareService'
 import { getUnitName } from '../data/units'
 
@@ -85,7 +86,13 @@ export default function ShareDetailModal({ share, user, onClose, onClaim, onLogi
         {/* 头部 */}
         <div className="flex justify-between items-center p-4 border-b">
           <h2 className="text-lg font-bold">分享详情</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* 内容 */}
@@ -120,7 +127,10 @@ export default function ShareDetailModal({ share, user, onClose, onClaim, onLogi
               <p className="text-sm text-gray-400">{formatTime(share.created_at)}</p>
             </div>
             {share.location_text && (
-              <span className="ml-auto text-sm text-gray-400">📍 {share.location_text}</span>
+              <span className="ml-auto text-sm text-gray-400 flex items-center gap-1">
+                <MapPin size={14} />
+                {share.location_text}
+              </span>
             )}
           </div>
 
@@ -213,13 +223,19 @@ export default function ShareDetailModal({ share, user, onClose, onClaim, onLogi
 
           {share.status === 'claimed' && (
             <div className="text-center py-2">
-              <span className="text-yellow-600">⏳ 已被领取，等待确认</span>
+              <span className="text-yellow-600 flex items-center justify-center gap-1">
+                <Clock size={16} />
+                已被领取，等待确认
+              </span>
             </div>
           )}
 
           {share.status === 'completed' && (
             <div className="text-center py-2">
-              <span className="text-green-600">✅ 已完成</span>
+              <span className="text-green-600 flex items-center justify-center gap-1">
+                <CheckCircle size={16} />
+                已完成
+              </span>
             </div>
           )}
 

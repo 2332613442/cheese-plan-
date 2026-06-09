@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { X, Share } from 'lucide-react'
 import { getShares, createShare } from '../utils/api'
 import ShareCard from '../components/ShareCard'
 import ShareDetail from '../components/ShareDetail'
@@ -139,9 +140,10 @@ export default function NearbyPage({ user, onLogin, foods = [] }) {
       {/* 发布按钮 */}
       <button
         onClick={handleCreateClick}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-cheese text-gray-800 rounded-full shadow-lg text-xl hover:bg-cheese-dark active:scale-95 transition flex items-center justify-center"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-cheese text-gray-800 rounded-full shadow-lg hover:bg-cheese-dark active:scale-95 transition flex items-center justify-center"
+        aria-label="发布分享"
       >
-        📤
+        <Share size={24} />
       </button>
 
       {/* 发布弹窗 */}
@@ -150,7 +152,13 @@ export default function NearbyPage({ user, onLogin, foods = [] }) {
           <div className="bg-white w-full max-w-sm rounded-2xl p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">发布分享</h3>
-              <button onClick={handleCloseCreate} className="text-gray-400 text-xl">✕</button>
+              <button
+                onClick={handleCloseCreate}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                aria-label="关闭弹窗"
+              >
+                <X size={20} />
+              </button>
             </div>
             <input
               type="text"

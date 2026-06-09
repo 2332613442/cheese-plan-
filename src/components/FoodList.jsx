@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react'
 import FoodCard from './FoodCard'
 import EmptyState from './EmptyState'
 
@@ -7,7 +8,9 @@ export default function FoodList({ foods, onEdit, onDelete, onConsume, onAdd, ha
     if (hasFilters) {
       return (
         <div className="text-center py-12 px-4">
-          <span className="text-4xl block mb-4">🔍</span>
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <Search size={32} className="text-gray-400" />
+          </div>
           <p className="text-gray-500">未找到匹配的食品</p>
           <p className="text-gray-400 text-sm mt-1">试试调整筛选条件</p>
         </div>

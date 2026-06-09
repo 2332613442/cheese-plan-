@@ -1,3 +1,5 @@
+import { X, FileText, Share2 } from 'lucide-react'
+
 export default function DonationHistory({ donations, onClose }) {
   const formatDate = (isoString) => {
     const date = new Date(isoString)
@@ -15,14 +17,22 @@ export default function DonationHistory({ donations, onClose }) {
         <div className="p-6 border-b">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold">捐赠记录</h2>
-            <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              aria-label="关闭弹窗"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
           {donations.length === 0 ? (
             <div className="text-center py-8">
-              <span className="text-4xl">📝</span>
+              <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                <FileText size={32} className="text-gray-400" />
+              </div>
               <p className="text-gray-500 mt-2">暂无捐赠记录</p>
               <p className="text-sm text-gray-400 mt-1">开始你的第一次捐赠吧</p>
             </div>
@@ -39,8 +49,9 @@ export default function DonationHistory({ donations, onClose }) {
                         {formatDate(donation.createdAt)} {formatTime(donation.createdAt)}
                       </span>
                       {donation.shareTitle && (
-                        <p className="text-sm font-medium text-gray-700 mt-1">
-                          📤 {donation.shareTitle}
+                        <p className="text-sm font-medium text-gray-700 mt-1 flex items-center gap-1">
+                          <Share2 size={14} className="text-gray-500" />
+                          {donation.shareTitle}
                         </p>
                       )}
                     </div>

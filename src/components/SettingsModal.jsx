@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, Check } from 'lucide-react'
 import { getSettings, saveSettings } from '../utils/settingsStorage'
 
 const reminderOptions = [
@@ -47,7 +48,13 @@ export default function SettingsModal({ onClose, onSave }) {
       <div className="bg-white w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold">设置</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="space-y-6">
@@ -109,13 +116,14 @@ export default function SettingsModal({ onClose, onSave }) {
                   <button
                     key={option.value}
                     onClick={() => toggleScheduleDay(option.value)}
-                    className={`py-2 px-4 rounded-full text-sm font-medium transition ${
+                    className={`py-2 px-4 rounded-full text-sm font-medium transition flex items-center gap-1 ${
                       isSelected
                         ? 'bg-cheese text-gray-800'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    {isSelected && '✓ '}{option.label}
+                    {isSelected && <Check size={14} />}
+                    {option.label}
                   </button>
                 )
               })}

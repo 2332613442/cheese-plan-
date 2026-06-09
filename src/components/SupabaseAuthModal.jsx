@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import { signUp, signIn } from '../utils/supabase'
 
 const avatarOptions = ['🧀', '🐭', '🐹', '🧁', '🍕', '🍔', '🥗', '🍜', '🍣', '🥪', '🌮', '🍩']
@@ -79,7 +80,13 @@ export default function SupabaseAuthModal({ onClose, onSuccess }) {
           <h2 className="text-lg font-bold">
             {mode === 'login' ? '登录' : '注册'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

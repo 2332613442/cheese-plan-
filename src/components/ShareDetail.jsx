@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 import { getShareDetail, claimShare, completeShare, cancelShare, getShareMessages, sendShareMessage } from '../utils/api'
 import { getCurrentUser } from '../utils/userStorage'
 
@@ -138,7 +139,13 @@ export default function ShareDetail({ shareId, onClose, onUpdate }) {
       <div className="bg-white w-full max-w-md rounded-2xl max-h-[90vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-bold">分享详情</h2>
-          <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+            aria-label="关闭弹窗"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">

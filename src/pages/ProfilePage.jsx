@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PartyPopper, Check, X as XIcon } from 'lucide-react'
 import { getCategoryById } from '../data/categories'
 import { getDonationStats } from '../utils/donationStorage'
 import { getConsumptionStats } from '../utils/consumptionStorage'
@@ -100,7 +101,9 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
         </div>
         {expiredFoods.length === 0 ? (
           <div className="bg-gray-50 rounded-xl p-6 text-center">
-            <span className="text-4xl">🎉</span>
+            <div className="w-16 h-16 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+              <PartyPopper size={32} className="text-green-500" />
+            </div>
             <p className="text-gray-500 mt-2">没有过期食品，很棒！</p>
           </div>
         ) : (
@@ -183,9 +186,24 @@ export default function ProfilePage({ foods, user, onLogin, onLogout, onNavigate
                 {syncStatus === 'restoring' ? '恢复中...' : '从云端恢复'}
               </button>
             </div>
-            {syncStatus === 'success' && <p className="text-green-500 text-xs mt-2">✓ 上传成功</p>}
-            {syncStatus === 'restored' && <p className="text-green-500 text-xs mt-2">✓ 恢复成功</p>}
-            {syncStatus === 'error' && <p className="text-red-500 text-xs mt-2">✗ 操作失败</p>}
+            {syncStatus === 'success' && (
+              <p className="text-green-500 text-xs mt-2 flex items-center gap-1">
+                <Check size={14} />
+                上传成功
+              </p>
+            )}
+            {syncStatus === 'restored' && (
+              <p className="text-green-500 text-xs mt-2 flex items-center gap-1">
+                <Check size={14} />
+                恢复成功
+              </p>
+            )}
+            {syncStatus === 'error' && (
+              <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                <XIcon size={14} />
+                操作失败
+              </p>
+            )}
           </div>
         )}
         <button

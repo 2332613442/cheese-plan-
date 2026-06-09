@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Lightbulb, PenSquare, Share, FileText } from 'lucide-react'
 import { getPosts as getLocalPosts, addPost as addLocalPost, deletePost, getLikedPosts, addLikedPost, likePost as likeLocalPost } from '../utils/postStorage'
 import { getPosts as getApiPosts, createPost as createApiPost, likePost as likeApiPost, getComments, addComment } from '../utils/api'
 import CreatePostModal from '../components/CreatePostModal'
@@ -213,11 +214,12 @@ export default function CommunityPage({ user, onLogin, foods }) {
         </button>
         <button
           onClick={() => setActiveSubTab('nearby')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition flex items-center justify-center gap-1 ${
             activeSubTab === 'nearby' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
           }`}
         >
-          📤 附近分享
+          <Share size={16} />
+          附近分享
         </button>
       </div>
 
@@ -236,7 +238,9 @@ export default function CommunityPage({ user, onLogin, foods }) {
         </div>
       ) : posts.length === 0 ? (
         <div className="text-center py-12">
-          <span className="text-5xl block mb-4">📝</span>
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <FileText size={32} className="text-gray-400" />
+          </div>
           <p className="text-gray-500">暂无帖子</p>
           <p className="text-gray-400 text-sm mt-1">成为第一个发帖的人吧！</p>
         </div>
@@ -331,14 +335,18 @@ export default function CommunityPage({ user, onLogin, foods }) {
       )}
 
       <div className="mt-6 p-4 bg-cheese-light rounded-xl text-center">
-        <p className="text-gray-800">💡 分享你的食品管理经验</p>
+        <p className="text-gray-800 flex items-center justify-center gap-2">
+          <Lightbulb size={18} className="text-cheese" />
+          分享你的食品管理经验
+        </p>
       </div>
 
       <button
         onClick={handleAddClick}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-cheese text-gray-800 rounded-full shadow-lg text-xl hover:bg-cheese-dark active:scale-95 transition flex items-center justify-center"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-cheese text-gray-800 rounded-full shadow-lg hover:bg-cheese-dark active:scale-95 transition flex items-center justify-center"
+        aria-label="发布动态"
       >
-        ✏️
+        <PenSquare size={24} />
       </button>
 
       {showCreateModal && user && (

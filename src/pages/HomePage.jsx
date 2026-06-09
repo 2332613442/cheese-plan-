@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import SearchBar from '../components/SearchBar'
 import CategoryFilter from '../components/CategoryFilter'
 import FoodList from '../components/FoodList'
@@ -120,8 +121,9 @@ export default function HomePage({ foods, onReload, daysFilter, onClearFilter })
             <button
               onClick={onClearFilter}
               className="ml-1 text-gray-500 hover:text-gray-700"
+              aria-label="清除筛选"
             >
-              ✕
+              <X size={14} />
             </button>
           </span>
         </div>

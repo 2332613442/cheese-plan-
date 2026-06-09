@@ -1,3 +1,5 @@
+import { Camera, Clock, Gift } from 'lucide-react'
+
 export default function EmptyState({ onAdd }) {
   return (
     <div className="text-center py-16 px-4">
@@ -30,15 +32,15 @@ export default function EmptyState({ onAdd }) {
       {/* 功能提示 */}
       <div className="mt-10 grid grid-cols-3 gap-4 text-center">
         <div className="text-gray-400">
-          <span className="text-2xl block mb-1">📷</span>
+          <Camera size={28} className="mx-auto mb-1" />
           <span className="text-xs">扫码添加</span>
         </div>
         <div className="text-gray-400">
-          <span className="text-2xl block mb-1">⏰</span>
+          <Clock size={28} className="mx-auto mb-1" />
           <span className="text-xs">临期提醒</span>
         </div>
         <div className="text-gray-400">
-          <span className="text-2xl block mb-1">🎁</span>
+          <Gift size={28} className="mx-auto mb-1" />
           <span className="text-xs">捐赠分享</span>
         </div>
       </div>

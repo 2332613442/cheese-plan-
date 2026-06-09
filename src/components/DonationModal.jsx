@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { X, ArrowLeft, Check, Package, Lightbulb } from 'lucide-react'
 
 export default function DonationModal({ foods, onClose, onSuccess, isSubmitting = false }) {
   const [selectedIds, setSelectedIds] = useState([])
@@ -82,15 +83,25 @@ export default function DonationModal({ foods, onClose, onSuccess, isSubmitting 
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               {step === 2 && (
-                <button onClick={handleBack} className="text-gray-400 hover:text-gray-600">
-                  ←
+                <button
+                  onClick={handleBack}
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  aria-label="返回上一步"
+                >
+                  <ArrowLeft size={20} />
                 </button>
               )}
               <h2 className="text-lg font-bold">
                 {step === 1 ? '选择捐赠食品' : '发布到附近分享'}
               </h2>
             </div>
-            <button onClick={onClose} className="text-gray-400 text-xl">✕</button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              aria-label="关闭弹窗"
+            >
+              <X size={20} />
+            </button>
           </div>
           <p className="text-sm text-gray-500 mt-1">
             {step === 1 ? '选择食品分享给附近的人' : '填写分享信息，让附近的人看到'}
@@ -107,7 +118,9 @@ export default function DonationModal({ foods, onClose, onSuccess, isSubmitting 
             // 第一步：选择食品
             donatableFoods.length === 0 ? (
               <div className="text-center py-8">
-                <span className="text-4xl">📦</span>
+                <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Package size={32} className="text-gray-400" />
+                </div>
                 <p className="text-gray-500 mt-2">暂无可捐赠食品</p>
                 <p className="text-sm text-gray-400 mt-1">添加一些食品后即可在此捐赠</p>
               </div>
@@ -145,7 +158,7 @@ export default function DonationModal({ foods, onClose, onSuccess, isSubmitting 
                             : 'border-gray-300'
                         }`}>
                           {selectedIds.includes(food.id) && (
-                            <span className="text-white text-sm">✓</span>
+                            <Check size={14} className="text-white" />
                           )}
                         </div>
                         <div className="flex-1">
@@ -240,8 +253,9 @@ export default function DonationModal({ foods, onClose, onSuccess, isSubmitting 
               </div>
 
               <div className="bg-cheese-light rounded-xl p-4">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">💡 提示：</span>发布后将显示在"附近分享"中，附近的人可以领取并联系你取件。
+                <p className="text-sm text-gray-600 flex items-start gap-2">
+                  <Lightbulb size={16} className="text-cheese shrink-0 mt-0.5" />
+                  <span>发布后将显示在"附近分享"中，附近的人可以领取并联系你取件。</span>
                 </p>
               </div>
             </div>
