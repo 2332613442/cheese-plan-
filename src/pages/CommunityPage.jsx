@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Lightbulb, PenSquare, Share, FileText } from 'lucide-react'
 import { getPosts as getLocalPosts, addPost as addLocalPost, deletePost, getLikedPosts, addLikedPost, likePost as likeLocalPost, updatePost } from '../utils/postStorage'
-import { getPosts as getApiPosts, createPost as createApiPost, likePost as likeApiPost, getComments, addComment } from '../utils/api'
+import { getPosts as getApiPosts, createPost as createApiPost, likePost as likeApiPost, getComments, addComment, updateApiPost, deleteApiPost } from '../utils/api'
 import CreatePostModal from '../components/CreatePostModal'
 import ConfirmModal from '../components/ConfirmModal'
 import NearbyPage from './NearbyPage'
@@ -147,26 +147,58 @@ export default function CommunityPage({ user, onLogin, foods }) {
     setDeletingPost(post)
   }
 
-  const confirmDeletePost = () => {
-    if (deletingPost) {
+  const confirmDeletePost = async () => {
+    if (!deletingPost) return
+
+    if (deletingPost.isApi) {
+      // 删除 API 帖子
+      try {
+        await deleteApiPost(deletingPost.id)
+        showToast('删除成功')
+      } catch (err) {
+        showToast('删除失败，请重试')
+        setDeletingPost(null)
+        return
+      }
+    } else {
+      // 删除本地帖子
       deletePost(deletingPost.id)
-      loadPosts()
-      setDeletingPost(null)
+      showToast('删除成功')
     }
+
+    loadPosts()
+    setDeletingPost(null)
   }
 
   const handleEditPost = (post) => {
     setEditingPost(post)
   }
 
-  const handleUpdatePost = (postData) => {
-    updatePost(postData.id, {
-      content: postData.content,
-      images: postData.images,
-    })
+  const handleUpdatePost = async (postData) => {
+    // 检查是否是 API 帖子
+    const originalPost = posts.find(p => p.id === postData.id)
+
+    if (originalPost?.isApi) {
+      // 编辑 API 帖子
+      try {
+        await updateApiPost(postData.id, postData.content, postData.images || [])
+        showToast('修改成功')
+      } catch (err) {
+        showToast('修改失败，请重试')
+        setEditingPost(null)
+        return
+      }
+    } else {
+      // 编辑本地帖子
+      updatePost(postData.id, {
+        content: postData.content,
+        images: postData.images,
+      })
+      showToast('修改成功')
+    }
+
     loadPosts()
     setEditingPost(null)
-    showToast('修改成功')
   }
 
   const showToast = (message) => {
@@ -274,14 +306,12 @@ export default function CommunityPage({ user, onLogin, foods }) {
                 </div>
                 {user && post.author === user.username && (
                   <div className="flex items-center gap-3">
-                    {!post.isApi && (
-                      <button
-                        onClick={() => handleEditPost(post)}
-                        className="text-gray-400 hover:text-cheese text-sm"
-                      >
-                        编辑
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleEditPost(post)}
+                      className="text-gray-400 hover:text-cheese text-sm"
+                    >
+                      编辑
+                    </button>
                     <button
                       onClick={() => handleDeletePost(post)}
                       className="text-gray-400 hover:text-red-500 text-sm"

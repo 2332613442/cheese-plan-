@@ -109,6 +109,17 @@ export const createPost = (content, images = []) =>
 export const likePost = (id) =>
   request(`/posts/${id}/like`, { method: 'POST' })
 
+// 更新帖子
+export const updateApiPost = (id, content, images = []) =>
+  request(`/posts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content, images }),
+  })
+
+// 删除帖子
+export const deleteApiPost = (id) =>
+  request(`/posts/${id}`, { method: 'DELETE' })
+
 // 获取帖子评论
 export const getComments = (postId) =>
   request(`/comments/post/${postId}`)
