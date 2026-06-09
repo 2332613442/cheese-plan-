@@ -272,14 +272,16 @@ export default function CommunityPage({ user, onLogin, foods }) {
                     <p className="text-xs text-gray-400">{post.time}</p>
                   </div>
                 </div>
-                {user && post.author === user.username && !post.isApi && (
+                {user && post.author === user.username && (
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleEditPost(post)}
-                      className="text-gray-400 hover:text-cheese text-sm"
-                    >
-                      编辑
-                    </button>
+                    {!post.isApi && (
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="text-gray-400 hover:text-cheese text-sm"
+                      >
+                        编辑
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeletePost(post)}
                       className="text-gray-400 hover:text-red-500 text-sm"
