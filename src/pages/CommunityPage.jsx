@@ -36,6 +36,7 @@ export default function CommunityPage({ user, onLogin, foods }) {
         avatar: post.avatar || '🧀',
         createdAt: post.created_at,
         content: post.content,
+        images: post.images || [],
         likes: post.likes || 0,
         comments: 0,
         shares: 0,
@@ -124,7 +125,7 @@ export default function CommunityPage({ user, onLogin, foods }) {
     addLocalPost(postData)
     if (user) {
       try {
-        await createApiPost(postData.content)
+        await createApiPost(postData.content, postData.images || [])
       } catch (err) {
         // 服务器失败，本地已保存，忽略错误
       }
@@ -268,6 +269,25 @@ export default function CommunityPage({ user, onLogin, foods }) {
 
               <p className="text-gray-700 mb-3">{post.content}</p>
 
+              {/* 图片展示 */}
+              {post.images && post.images.length > 0 && (
+                <div className={`mb-3 grid gap-2 ${
+                  post.images.length === 1 ? 'grid-cols-1' :
+                  post.images.length === 2 ? 'grid-cols-2' :
+                  'grid-cols-3'
+                }`}>
+                  {post.images.slice(0, 4).map((img, idx) => (
+                    <div key={idx} className={`relative ${post.images.length === 1 ? 'max-w-xs' : 'aspect-square'}`}>
+                      <img
+                        src={img}
+                        alt={`图片${idx + 1}`}
+                        className={`rounded-lg object-cover ${post.images.length === 1 ? 'max-h-48 w-auto' : 'w-full h-full'}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex gap-6 text-sm text-gray-500 border-t pt-3">
                 <button
                   onClick={() => handleLike(post.id)}
@@ -295,13 +315,18 @@ export default function CommunityPage({ user, onLogin, foods }) {
                   ) : (
                     <>
                       {comments[post.id]?.length > 0 ? (
-                        <div className="space-y-2 mb-3">
+                        <div className="space-y-3 mb-3">
                           {comments[post.id].map((c, i) => (
                             <div key={c.id || i} className="flex gap-2 text-sm">
-                              <span>{c.avatar || '🧀'}</span>
-                              <div>
-                                <span className="font-medium text-gray-700">{c.username}</span>
-                                <span className="text-gray-500 ml-2">{c.content}</span>
+                              <span className="shrink-0">{c.avatar || '🧀'}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-700">{c.username}</span>
+                                  <span className="text-xs text-gray-400">
+                                    {c.created_at ? formatRelativeTime(c.created_at) : '刚刚'}
+                                  </span>
+                                </div>
+                                <p className="text-gray-600 mt-0.5 break-words">{c.content}</p>
                               </div>
                             </div>
                           ))}

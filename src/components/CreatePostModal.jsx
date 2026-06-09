@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import MultiImagePicker from './MultiImagePicker'
 
 export default function CreatePostModal({ user, onClose, onSuccess }) {
   const [content, setContent] = useState('')
+  const [images, setImages] = useState([])
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    if (!content.trim()) {
-      alert('请输入内容')
+    if (!content.trim() && images.length === 0) {
+      alert('请输入内容或添加图片')
       return
     }
 
@@ -21,6 +23,7 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
       author: user.username,
       avatar: user.avatar,
       content: content.trim(),
+      images: images.length > 0 ? images : undefined,
     })
     onClose()
   }
@@ -60,9 +63,14 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
             </div>
           </div>
 
+          {/* 图片上传 */}
+          <div className="mb-4">
+            <MultiImagePicker images={images} onChange={setImages} maxCount={4} />
+          </div>
+
           <button
             type="submit"
-            disabled={!content.trim()}
+            disabled={!content.trim() && images.length === 0}
             className="w-full py-3 bg-cheese text-gray-800 rounded-xl font-medium hover:bg-cheese-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             发布

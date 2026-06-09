@@ -67,6 +67,7 @@ export function addPost(post) {
   const newPost = {
     id: generateUUID(),
     ...post,
+    images: post.images || [],
     likes: 0,
     createdAt: new Date().toISOString(),
   }

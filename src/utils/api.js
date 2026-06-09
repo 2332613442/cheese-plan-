@@ -99,10 +99,10 @@ export const sendShareMessage = (shareId, content) =>
 export const getPosts = () => request('/posts')
 
 // 发布帖子
-export const createPost = (content) =>
+export const createPost = (content, images = []) =>
   request('/posts', {
     method: 'POST',
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, images }),
   })
 
 // 点赞帖子
