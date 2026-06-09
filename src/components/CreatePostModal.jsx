@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import MultiImagePicker from './MultiImagePicker'
 
-export default function CreatePostModal({ user, onClose, onSuccess }) {
-  const [content, setContent] = useState('')
-  const [images, setImages] = useState([])
+export default function CreatePostModal({ user, onClose, onSuccess, editPost = null }) {
+  const isEditing = !!editPost
+  const [content, setContent] = useState(editPost?.content || '')
+  const [images, setImages] = useState(editPost?.images || [])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -19,12 +20,20 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
       return
     }
 
-    onSuccess({
-      author: user.username,
-      avatar: user.avatar,
-      content: content.trim(),
-      images: images.length > 0 ? images : undefined,
-    })
+    if (isEditing) {
+      onSuccess({
+        id: editPost.id,
+        content: content.trim(),
+        images: images.length > 0 ? images : [],
+      })
+    } else {
+      onSuccess({
+        author: user.username,
+        avatar: user.avatar,
+        content: content.trim(),
+        images: images.length > 0 ? images : undefined,
+      })
+    }
     onClose()
   }
 
@@ -32,7 +41,7 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-sm rounded-2xl p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold">发布动态</h2>
+          <h2 className="text-lg font-bold">{isEditing ? '编辑动态' : '发布动态'}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
@@ -73,7 +82,7 @@ export default function CreatePostModal({ user, onClose, onSuccess }) {
             disabled={!content.trim() && images.length === 0}
             className="w-full py-3 bg-cheese text-gray-800 rounded-xl font-medium hover:bg-cheese-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            发布
+            {isEditing ? '保存修改' : '发布'}
           </button>
         </form>
       </div>

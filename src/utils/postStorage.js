@@ -105,3 +105,18 @@ export function deletePost(postId) {
   const filtered = posts.filter(p => p.id !== postId)
   savePosts(filtered)
 }
+
+// 更新帖子
+export function updatePost(postId, updates) {
+  const posts = getPosts()
+  const index = posts.findIndex(p => p.id === postId)
+  if (index === -1) return null
+
+  posts[index] = {
+    ...posts[index],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  }
+  savePosts(posts)
+  return posts[index]
+}

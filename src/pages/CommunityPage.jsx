@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Lightbulb, PenSquare, Share, FileText } from 'lucide-react'
-import { getPosts as getLocalPosts, addPost as addLocalPost, deletePost, getLikedPosts, addLikedPost, likePost as likeLocalPost } from '../utils/postStorage'
+import { getPosts as getLocalPosts, addPost as addLocalPost, deletePost, getLikedPosts, addLikedPost, likePost as likeLocalPost, updatePost } from '../utils/postStorage'
 import { getPosts as getApiPosts, createPost as createApiPost, likePost as likeApiPost, getComments, addComment } from '../utils/api'
 import CreatePostModal from '../components/CreatePostModal'
 import ConfirmModal from '../components/ConfirmModal'
@@ -13,6 +13,7 @@ export default function CommunityPage({ user, onLogin, foods }) {
   const [likedIds, setLikedIds] = useState([])
   const [toast, setToast] = useState('')
   const [deletingPost, setDeletingPost] = useState(null)
+  const [editingPost, setEditingPost] = useState(null)
   const [likeAnimation, setLikeAnimation] = useState(null)
   const [loading, setLoading] = useState(true)
   const [expandedPost, setExpandedPost] = useState(null)
@@ -154,6 +155,20 @@ export default function CommunityPage({ user, onLogin, foods }) {
     }
   }
 
+  const handleEditPost = (post) => {
+    setEditingPost(post)
+  }
+
+  const handleUpdatePost = (postData) => {
+    updatePost(postData.id, {
+      content: postData.content,
+      images: postData.images,
+    })
+    loadPosts()
+    setEditingPost(null)
+    showToast('修改成功')
+  }
+
   const showToast = (message) => {
     setToast(message)
     setTimeout(() => setToast(''), 2000)
@@ -258,12 +273,20 @@ export default function CommunityPage({ user, onLogin, foods }) {
                   </div>
                 </div>
                 {user && post.author === user.username && !post.isApi && (
-                  <button
-                    onClick={() => handleDeletePost(post)}
-                    className="text-gray-400 hover:text-red-500 text-sm"
-                  >
-                    删除
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleEditPost(post)}
+                      className="text-gray-400 hover:text-cheese text-sm"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      onClick={() => handleDeletePost(post)}
+                      className="text-gray-400 hover:text-red-500 text-sm"
+                    >
+                      删除
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -379,6 +402,15 @@ export default function CommunityPage({ user, onLogin, foods }) {
           user={user}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleCreatePost}
+        />
+      )}
+
+      {editingPost && user && (
+        <CreatePostModal
+          user={user}
+          editPost={editingPost}
+          onClose={() => setEditingPost(null)}
+          onSuccess={handleUpdatePost}
         />
       )}
 
