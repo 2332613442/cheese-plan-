@@ -35,6 +35,7 @@ export default function CommunityPage({ user, onLogin, foods }) {
         id: post.id,
         author: post.username || '用户',
         avatar: post.avatar || '🧀',
+        userId: post.user_id,
         createdAt: post.created_at,
         content: post.content,
         images: post.images || [],
@@ -304,7 +305,7 @@ export default function CommunityPage({ user, onLogin, foods }) {
                     <p className="text-xs text-gray-400">{post.time}</p>
                   </div>
                 </div>
-                {user && post.author === user.username && (
+                {user && (post.author === user.username || post.userId === user.id) && (
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleEditPost(post)}
